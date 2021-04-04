@@ -230,7 +230,7 @@ async function main() {
   // console.log(JSON.stringify(result, null, "  "));
   const table = makeTable(result);
   // console.log(JSON.stringify(table, null, "  "));
-  console.log(`,,${filename}`);
+  console.log(`${filename}`);
   printCsv(table);
 }
 
