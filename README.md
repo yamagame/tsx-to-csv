@@ -19,7 +19,7 @@ function main() {
         <div>False</div>
       )}
       <header>
-        {/*= "Worldです1" */}
+        {/*= Worldです1 */}
         {/*= Worldです2 */}
         <div>World</div>
       </header>
@@ -32,10 +32,10 @@ function main() {
 
 ```csv
 ,,,test.tsx
-    3,div           ,
-    5,___:div       ,Helloです
-    8,___:div       ,True の場合
-   12,___:div       ,False の場合1\nFalse の場合2
-   14,___:header    ,
-   17,___:______:div,\"Worldです1\"\nWorldです2
+    3,<div>
+    5,_____|<div>         ,Helloです
+    8,_____|<div>         ,True の場合
+   12,_____|<div>         ,False の場合1,False の場合2
+   14,_____|<header>      ,
+   17,_____|________|<div>,Worldです1,Worldです2
 ```

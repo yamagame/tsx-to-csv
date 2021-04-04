@@ -38,11 +38,29 @@ function parseTsx(filename) {
           type: "start-comment",
           value: m8[1],
         };
+      const m11 = line.match(/^\s*(<>)/);
+      if (m11)
+        return {
+          type: "open",
+          value: m11[1],
+        };
+      const m12 = line.match(/^\s*(<\/>)/);
+      if (m12)
+        return {
+          type: "close",
+          value: m12[1],
+        };
       const m1 = line.match(/^\s*<([^\s^\/.]+?)\s+.*\/>/);
       if (m1)
         return {
           type: "open-close",
           value: m1[1],
+        };
+      const m13 = line.match(/^\s*<([^\s^\/.]+?)>.*<\/.+>/);
+      if (m13)
+        return {
+          type: "open-close",
+          value: m13[1],
         };
       const m2 = line.match(/^\s*<([^\s^\/.]+?)\s+.*>/);
       if (m2)
@@ -110,8 +128,6 @@ function parseTsx(filename) {
           .split("\n")
           .map((v) => v.trim())
           .join("\n");
-        // console.log("########");
-        // console.log(curLine);
         result.push(p);
         if (p.type === "open") indent++;
       }
@@ -122,21 +138,27 @@ function parseTsx(filename) {
 
     rl.on("close", () => {
       resolve(result);
-      // console.log(JSON.stringify(result, null, "  "));
     });
   });
 }
 
-function printCsv(result) {
+function makeTable(result) {
+  const tagStr = (value) => {
+    if (value === "<>" || value === "</>") {
+      return value;
+    } else {
+      return `<${value}>`;
+    }
+  };
   const indent = (indent, value, spaces) => {
     let d = "";
     for (let i = 0; i < spaces.length; i++) {
       for (let j = 0; j < spaces[i]; j++) {
         d += "_";
       }
-      d += ":";
+      d += "|";
     }
-    d += value;
+    d += tagStr(value);
     return d;
   };
   const skip = (line) =>
@@ -149,25 +171,23 @@ function printCsv(result) {
     indentSpaces[line.indent] = t.length;
     line.indentSpace = [...indentSpaces].splice(0, line.indent);
     const s = t.padStart(
-      line.indentSpace.reduce((a, b) => (a += b + 1), 0) + line.value.length,
+      line.indentSpace.reduce((a, b) => (a += b + 1), 0) +
+        tagStr(line.value).length,
       " "
     );
     if (maxlen < s.length) maxlen = s.length;
   });
-  let s = "";
+  const lines = [];
+  let s = [];
   result.forEach((line, i) => {
     if (skip(line)) return;
-    s += `${line.lineCount.toString().padStart(5, " ")},`;
-    // s += `${line.type}`.padEnd(10, " ");
-    // s += `,`;
-    // s += `${line.indent},`;
-    s += `${indent(line.indent, line.value, line.indentSpace)}`.padEnd(
-      maxlen,
-      " "
+    s.push(`${line.lineCount.toString().padStart(5, " ")}`);
+    // s.push(`${line.type}`.padEnd(10, " "));
+    // s.push(`${line.indent}`.padStart(3, " "));
+    s.push(
+      `${indent(line.indent, line.value, line.indentSpace)}`.padEnd(maxlen, " ")
     );
-    s += `,`;
     if (i > 0) {
-      let q = "";
       let n = i;
       for (let j = i - 1; j > 0; j--) {
         if (result[j].type === "comment") {
@@ -178,25 +198,38 @@ function printCsv(result) {
       }
       if (n != i) {
         for (let j = n; j < i; j++) {
-          if (j > n) q += "\\n";
-          const v = result[j].value.replace(/"/g, '\\"');
-          q += `${v}`;
+          s.push(result[j].value);
         }
+      } else {
+        s.push("");
       }
-      s += q;
     }
-    s += "\n";
+    lines.push(s);
+    s = [];
   });
-  return s;
+  return lines;
+}
+
+function printCsv(table) {
+  table.forEach((line) => {
+    console.log(
+      line
+        .map((line) => {
+          return line.replace(/"/g, '\\"');
+        })
+        .join(",")
+    );
+  });
 }
 
 async function main() {
   const filename = process.argv[2] || "";
   const result = await parseTsx(filename);
-  const csv = printCsv(result);
-  console.log(`,,,${filename}`);
-  console.log(csv);
   // console.log(JSON.stringify(result, null, "  "));
+  const table = makeTable(result);
+  // console.log(JSON.stringify(table, null, "  "));
+  console.log(`,,,${filename}`);
+  printCsv(table);
 }
 
 main();
