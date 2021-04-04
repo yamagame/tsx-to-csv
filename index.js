@@ -189,7 +189,7 @@ function makeTable(result) {
     );
     if (i > 0) {
       let n = i;
-      for (let j = i - 1; j > 0; j--) {
+      for (let j = i - 1; j >= 0; j--) {
         if (result[j].type === "comment") {
           n = j;
         } else {
@@ -203,6 +203,8 @@ function makeTable(result) {
       } else {
         s.push("");
       }
+    } else {
+      s.push("");
     }
     lines.push(s);
     s = [];
