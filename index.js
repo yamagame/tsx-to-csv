@@ -44,6 +44,12 @@ function parseTsx(filename) {
           type: "half-open",
           value: m15[1],
         };
+      const m17 = line.match(/^\s*(\/>)$/);
+      if (m17)
+        return {
+          type: "close",
+          value: m17[1],
+        };
       const m16 = line.match(/^\s*(>)$/);
       if (m16)
         return {
