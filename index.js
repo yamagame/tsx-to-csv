@@ -38,6 +38,24 @@ function parseTsx(filename) {
           type: "start-comment",
           value: m8[1],
         };
+      const m15 = line.match(/^\s*<([^\s^>.]+)$/);
+      if (m15)
+        return {
+          type: "half-open",
+          value: m15[1],
+        };
+      const m16 = line.match(/^\s*(>)$/);
+      if (m16)
+        return {
+          type: "half-close",
+          value: m16[1],
+        };
+      const m14 = line.match(/^\s*(<>)<\/>/);
+      if (m14)
+        return {
+          type: "open-close",
+          value: m14[1],
+        };
       const m11 = line.match(/^\s*(<>)/);
       if (m11)
         return {
@@ -129,7 +147,7 @@ function parseTsx(filename) {
           .map((v) => v.trim())
           .join("\n");
         result.push(p);
-        if (p.type === "open") indent++;
+        if (p.type === "open" || p.type === "half-open") indent++;
       }
       if (stat === "start-comment") return;
       if (stat === "start") return;
@@ -162,7 +180,10 @@ function makeTable(result) {
     return d;
   };
   const skip = (line) =>
-    line.type === "comment" || line.type === "close" || line.type === "skip";
+    line.type === "comment" ||
+    line.type === "close" ||
+    line.type === "skip" ||
+    line.type === "half-close";
   const indentSpaces = [0, 0, 0, 0];
   let maxlen = 0;
   result.forEach((line) => {
